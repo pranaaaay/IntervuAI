@@ -69,55 +69,31 @@ public class AppConfig {
         return http.build();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    return request -> {
+        CorsConfiguration cfg = new CorsConfiguration();
 
-        return new CorsConfigurationSource() {
+        cfg.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "http://localhost:4200",
+            "https://intervu-ai-beta.vercel.app"
+        ));
 
-            @Override
-            public CorsConfiguration getCorsConfiguration(
-                    HttpServletRequest request) {
+        cfg.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
 
-                CorsConfiguration cfg =
-                        new CorsConfiguration();
+        cfg.setAllowedHeaders(Collections.singletonList("*"));
+        cfg.setExposedHeaders(Collections.singletonList(JwtConstant.JWT_HEADER));
+        cfg.setAllowCredentials(true);
+        cfg.setMaxAge(3600L);
 
-                cfg.setAllowedOrigins(
-                        Arrays.asList(
-                                "http://localhost:3000",
-                                "http://localhost:4200"
-                        )
-                );
-
-                cfg.setAllowedMethods(
-                        Arrays.asList(
-                                "GET",
-                                "POST",
-                                "PUT",
-                                "DELETE",
-                                "OPTIONS"
-                        )
-                );
-
-                cfg.setAllowedHeaders(
-                        Collections.singletonList("*")
-                );
-
-                cfg.setExposedHeaders(
-                        Collections.singletonList(
-                                JwtConstant.JWT_HEADER
-                        )
-                );
-
-                cfg.setAllowCredentials(true);
-
-                cfg.setMaxAge(3600L);
-
-                return cfg;
-            }
-        };
-    }
-
-    @Bean
+        return cfg;
+    };
+}
+  @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
