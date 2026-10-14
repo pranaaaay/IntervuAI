@@ -38,11 +38,11 @@ public class IntervuServiceImpl implements IntervueService {
     @Autowired
     private RestTemplate temp;
 
-    @Value("${ollama.model}")
-    private String model;
+    @Value("${gemini.model}")
+private String model;
 
-    @Value("${ollama.api.url}")
-    private String url;
+@Value("${gemini.api.key}")
+private String apiKey;
 
     @Autowired
     public IntervuServiceImpl(
@@ -70,29 +70,53 @@ public class IntervuServiceImpl implements IntervueService {
             + "Problem-Solving Skills: <number>\n\n"
             + "After the three scores, provide a short explanation of the candidate's strengths and areas for improvement.\n\n";
 
-    public String getResponse(String prompt) {
-
-        Map<String, Object> request = new HashMap<>();
-
-        request.put("model", model);
-        request.put("prompt", prompt);
-        request.put("stream", false);
-
-        OllamaResponse response =
-                temp.postForObject(
-                        url,
-                        request,
-                        OllamaResponse.class
-                );
-
-        if (response == null) {
-            throw new RuntimeException(
-                    "No response received from Ollama"
-            );
-        }
-
-        return response.getResponse();
+    
+public String getResponse(String prompt) {
+    if (apiKey == null || apiKey.isBlank()) {
+        throw new IllegalStateException("Gemini API key is not configured");
     }
+
+    String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+            + model + ":generateContent?key=" + apiKey;
+
+    Map<String, Object> part = new HashMap<>();
+    part.put("text", prompt);
+
+    Map<String, Object> content = new HashMap<>();
+    content.put("parts", List.of(part));
+
+    Map<String, Object> request = new HashMap<>();
+    request.put("contents", List.of(content));
+
+    Map response = temp.postForObject(url, request, Map.class);
+
+    if (response == null) {
+        throw new IllegalStateException("No response received from Gemini");
+    }
+
+    List candidates = (List) response.get("candidates");
+
+    if (candidates == null || candidates.isEmpty()) {
+        throw new IllegalStateException("Gemini returned no answer");
+    }
+
+    Map candidate = (Map) candidates.get(0);
+    Map responseContent = (Map) candidate.get("content");
+    List parts = (List) responseContent.get("parts");
+
+    if (parts == null || parts.isEmpty()) {
+        throw new IllegalStateException("Gemini returned empty text");
+    }
+
+    Map responsePart = (Map) parts.get(0);
+    Object text = responsePart.get("text");
+
+    if (text == null) {
+        throw new IllegalStateException("Gemini returned no text");
+    }
+
+    return text.toString();
+}
 
     @Override
     public InterviewStartResponse findUserByEmail(
