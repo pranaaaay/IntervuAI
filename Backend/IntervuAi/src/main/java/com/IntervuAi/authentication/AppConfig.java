@@ -45,6 +45,7 @@ public class AppConfig {
             .authorizeHttpRequests(auth -> auth
 
                     .requestMatchers(
+                            "/",
                             "/auth/**",
                             "/error"
                     ).permitAll()
