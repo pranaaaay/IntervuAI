@@ -13,7 +13,7 @@ const Speech = () => {
   const dispatch = useDispatch();
 
   // useEffect(() => {
-  //   axios.get("http://localhost:8080/bot/node")
+  //   axios.get("https://intervuai-backend-8mvw.onrender.com/bot/java")
   //     .then((res) => {
   //       console.log(res.data);
 
